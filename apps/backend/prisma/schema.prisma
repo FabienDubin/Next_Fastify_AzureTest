@@ -1,0 +1,51 @@
+// Prisma schema for Azure SQL Database
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String   // Hashed with bcrypt
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
+
+model ProviderType {
+  id         Int        @id @default(autoincrement())
+  name       String     @unique // "hotel", "audiovisuel", "traiteur", "lieu"
+  label      String     // "Hôtel", "Prestataire audiovisuel", etc.
+  jsonSchema String     // JSON string containing the schema definition
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  providers  Provider[]
+
+  @@map("provider_types")
+}
+
+model Provider {
+  id             Int          @id @default(autoincrement())
+  name           String
+  email          String       @unique
+  phone          String?
+  address        String?
+  providerTypeId Int
+  providerType   ProviderType @relation(fields: [providerTypeId], references: [id])
+  specificities  String       // JSON string containing dynamic fields
+  status         String       @default("active") // "active" or "inactive"
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([providerTypeId])
+  @@index([status])
+  @@map("providers")
+}
