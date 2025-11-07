@@ -14,29 +14,28 @@ export class ProvidersService {
     const { providerTypeId, status, search, specificities, page = 1, limit = 10 } = filters;
 
     // Build where clause
+    // IMPORTANT: Si on a une recherche textuelle (search), on ne filtre PAS par search dans SQL
+    // car on doit AUSSI chercher dans les spécificités (JSON) qui ne sont pas queryables en SQL
+    // On charge donc TOUS les providers (avec les autres filtres) puis on filtre en mémoire
     const where: Prisma.ProviderWhereInput = {
       ...(providerTypeId && { providerTypeId }),
       ...(status && { status }),
-      ...(search && {
-        OR: [
-          { name: { contains: search, mode: 'insensitive' as Prisma.QueryMode } },
-          { email: { contains: search, mode: 'insensitive' as Prisma.QueryMode } },
-        ],
-      }),
+      // Pas de filtre search ici - on le fera en mémoire pour inclure les spécificités
     };
 
-    // Get total count
-    const total = await this.prisma.provider.count({ where });
-
-    // Get paginated data
+    // Get all matching providers (will filter by search in memory if needed)
+    const shouldSearchInMemory = search && search.length > 0;
     const providers = await this.prisma.provider.findMany({
       where,
       include: {
         providerType: true,
       },
       orderBy: { createdAt: 'desc' },
-      skip: (page - 1) * limit,
-      take: limit,
+      // Only apply pagination if not searching (we'll filter in memory then paginate)
+      ...(!shouldSearchInMemory && {
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
     });
 
     // Parse JSON specificities
@@ -75,8 +74,60 @@ export class ProvidersService {
       });
     }
 
+    // Search filtering: search in ALL fields (basic + specificities)
+    if (search && search.length > 0) {
+      const searchLower = search.toLowerCase();
+
+      filteredData = filteredData.filter((provider) => {
+        // 1. Check basic fields (name, email, address, phone)
+        const matchesBasicFields =
+          provider.name?.toLowerCase().includes(searchLower) ||
+          provider.email?.toLowerCase().includes(searchLower) ||
+          provider.address?.toLowerCase().includes(searchLower) ||
+          provider.phone?.toLowerCase().includes(searchLower);
+
+        if (matchesBasicFields) return true;
+
+        // 2. Check specificities values (all types)
+        const matchesInSpecificities = Object.values(provider.specificities).some((value) => {
+          if (value === null || value === undefined) return false;
+
+          // Handle strings
+          if (typeof value === 'string') {
+            return value.toLowerCase().includes(searchLower);
+          }
+
+          // Handle numbers
+          if (typeof value === 'number') {
+            return value.toString().includes(searchLower);
+          }
+
+          // Handle arrays
+          if (Array.isArray(value)) {
+            return value.some((item) =>
+              item?.toString().toLowerCase().includes(searchLower)
+            );
+          }
+
+          // Handle booleans
+          if (typeof value === 'boolean') {
+            return value.toString().toLowerCase().includes(searchLower);
+          }
+
+          return false;
+        });
+
+        return matchesInSpecificities;
+      });
+    }
+
+    // Apply pagination after all filtering
+    const paginatedData = shouldSearchInMemory
+      ? filteredData.slice((page - 1) * limit, page * limit)
+      : filteredData;
+
     return {
-      data: filteredData,
+      data: paginatedData,
       total: filteredData.length,
       page,
       limit,

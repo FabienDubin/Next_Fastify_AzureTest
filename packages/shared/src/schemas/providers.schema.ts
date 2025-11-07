@@ -20,14 +20,14 @@ export const createProviderSchema = z.object({
 // Update Provider schema
 export const updateProviderSchema = createProviderSchema.partial();
 
-// Provider filters schema
+// Provider filters schema (avec coercion pour les query params HTTP)
 export const providerFiltersSchema = z.object({
-  providerTypeId: z.number().int().positive().optional(),
+  providerTypeId: z.coerce.number().int().positive().optional(),
   status: providerStatusSchema.optional(),
   search: z.string().optional(),
   specificities: z.record(z.any()).optional(),
-  page: z.number().int().positive().default(1),
-  limit: z.number().int().positive().max(100).default(10),
+  page: z.coerce.number().int().positive().default(1),
+  limit: z.coerce.number().int().positive().max(100).default(10),
 });
 
 export type CreateProviderSchema = z.infer<typeof createProviderSchema>;
