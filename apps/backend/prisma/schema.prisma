@@ -1,11 +1,11 @@
-// Prisma schema for Azure SQL Database
+// Prisma schema for PostgreSQL (Azure PostgreSQL compatible)
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlserver"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

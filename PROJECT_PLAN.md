@@ -270,9 +270,10 @@ CREATE INDEX idx_provider_nombreEtoiles ON Provider(nombreEtoiles);
 - **Types discriminés** (union types pour spécificités)
 
 ### Base de données
-- **Azure SQL Database**
-- **Colonnes JSON** pour les spécificités
-- **Indexes JSON** pour la recherche
+- **PostgreSQL** (Azure Database for PostgreSQL)
+- **Colonnes JSONB** pour les spécificités (type natif performant)
+- **Index GIN** pour la recherche dans le JSON
+- Migration de SQL Server → PostgreSQL (2025-11-07)
 
 ### DevOps
 - **pnpm workspaces** (monorepo)
@@ -468,14 +469,16 @@ apps/frontend/
 - Backend : `.service.ts` (logique métier)
 - Frontend : `.api.ts` (appels HTTP uniquement)
 
-### Phase 4 : Azure SQL Database ⏳ À FAIRE
-1. ⏳ Créer la base de données Azure SQL
+### Phase 4 : Azure PostgreSQL Database ⏳ À FAIRE
+1. ⏳ Créer Azure Database for PostgreSQL
 2. ⏳ Configurer le firewall
-3. ⏳ Connecter Prisma à Azure SQL
+3. ⏳ Connecter Prisma à Azure PostgreSQL
 4. ⏳ Exécuter les migrations
-5. ⏳ Tester les requêtes JSON
+5. ⏳ Tester les requêtes JSON/JSONB
+6. ⏳ (Optionnel) Créer index GIN pour performance
 
-**Note :** Actuellement en dev local avec SQL Server Docker
+**Note :** Actuellement en dev local avec PostgreSQL Docker
+**Migration :** SQL Server → PostgreSQL effectuée le 2025-11-07
 
 ### Phase 5 : Déploiement Azure ⏳ À FAIRE
 1. ⏳ Créer la Static Web App (frontend)
@@ -521,9 +524,9 @@ cd apps/frontend
 pnpm dev  # Port 3000
 ```
 
-**Démarrer SQL Server Docker :**
+**Démarrer PostgreSQL Docker :**
 ```bash
-docker start sqlserver
+docker start postgres-testazure
 ```
 
 **Prisma Studio (visualiser la BDD) :**
@@ -534,9 +537,12 @@ pnpm prisma:studio
 
 ### 🔐 Infos importantes
 - **Backend API:** http://localhost:3001
-- **Database:** SQL Server Docker sur port 1433
+- **Database:** PostgreSQL Docker sur port 5432
+- **Database name:** testazure
+- **Database user:** testuser / testpass123
 - **Test user:** admin@test.com / password123
 - **JWT Secret:** Configuré dans apps/backend/.env
+- **Prisma Studio:** `pnpm prisma studio` (http://localhost:5555)
 
 ### 📦 Dépendances installées
 **Frontend :**
@@ -702,6 +708,32 @@ Frontend → API Backend → Azure AI Search
 
 ---
 
+---
+
+## 📝 Historique des changements
+
+### 2025-11-07 : Migration SQL Server → PostgreSQL
+**Raison** : Meilleur support natif du JSON (JSONB) pour les spécificités dynamiques
+
+**Avantages** :
+- ✅ Type JSONB natif (pas de parsing string)
+- ✅ Index GIN ultra-performants pour recherche JSON
+- ✅ Requêtes JSON plus simples et rapides
+- ✅ Coût Azure moindre (~50€ vs ~100€/mois)
+- ✅ Compatible Azure AI Search
+
+**Changements effectués** :
+- `prisma/schema.prisma` : `provider = "postgresql"`
+- `.env` : `DATABASE_URL` mise à jour
+- Migrations recréées pour PostgreSQL
+- Données re-seedées
+
+**Temps de migration** : 20 minutes
+**Impact code** : Aucun (Prisma abstrait la BDD)
+
+---
+
 **Auteur :** Fab
-**Date :** 2025-11-06 (Mise à jour recherche : 2025-11-07)
+**Date de création :** 2025-11-06
+**Dernière mise à jour :** 2025-11-07
 **Objectif :** Tester l'architecture complète avant le projet principal
