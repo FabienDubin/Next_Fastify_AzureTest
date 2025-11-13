@@ -13,6 +13,8 @@ out/
 .env
 .env.local
 .env.*.local
+.env.azure
+.env.production
 
 # IDE
 .vscode/

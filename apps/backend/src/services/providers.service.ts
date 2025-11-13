@@ -58,8 +58,8 @@ export class ProvidersService {
           // Handle different comparison types
           if (typeof value === 'object' && value !== null) {
             // Support for range queries: { min: 3, max: 5 }
-            if ('min' in value && providerValue < value.min) return false;
-            if ('max' in value && providerValue > value.max) return false;
+            if ('min' in value && typeof value.min === 'number' && providerValue < value.min) return false;
+            if ('max' in value && typeof value.max === 'number' && providerValue > value.max) return false;
             return true;
           }
 
@@ -127,7 +127,7 @@ export class ProvidersService {
       : filteredData;
 
     return {
-      data: paginatedData,
+      data: paginatedData as Provider[],
       total: filteredData.length,
       page,
       limit,
@@ -153,7 +153,7 @@ export class ProvidersService {
         ...provider.providerType,
         jsonSchema: JSON.parse(provider.providerType.jsonSchema),
       },
-    };
+    } as Provider;
   }
 
   async create(data: CreateProviderRequest): Promise<Provider> {
@@ -179,7 +179,7 @@ export class ProvidersService {
         ...provider.providerType,
         jsonSchema: JSON.parse(provider.providerType.jsonSchema),
       },
-    };
+    } as Provider;
   }
 
   async update(id: number, data: UpdateProviderRequest): Promise<Provider | null> {
@@ -214,7 +214,7 @@ export class ProvidersService {
         ...updated.providerType,
         jsonSchema: JSON.parse(updated.providerType.jsonSchema),
       },
-    };
+    } as Provider;
   }
 
   async delete(id: number): Promise<boolean> {

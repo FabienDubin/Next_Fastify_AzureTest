@@ -1,12 +1,13 @@
-import { FastifyPluginAsync } from 'fastify';
-import { loginSchema } from '@repo/shared';
-import { AuthService } from '../services/auth.service';
+import { FastifyPluginAsync } from "fastify";
+import { loginSchema } from "@repo/shared";
+// import { loginSchema } from '@packages/shared/types';
+import { AuthService } from "../services/auth.service";
 
 const authRoutes: FastifyPluginAsync = async (server) => {
   const authService = new AuthService(server.prisma);
 
   // POST /api/auth/login
-  server.post('/login', async (request, reply) => {
+  server.post("/login", async (request, reply) => {
     try {
       // Validate request body
       const body = loginSchema.parse(request.body);
@@ -16,7 +17,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
 
       if (!result) {
         return reply.status(401).send({
-          error: 'Invalid credentials',
+          error: "Invalid credentials",
         });
       }
 
@@ -31,23 +32,23 @@ const authRoutes: FastifyPluginAsync = async (server) => {
         user: result.user,
       };
     } catch (error) {
-      if (error instanceof Error && error.name === 'ZodError') {
+      if (error instanceof Error && error.name === "ZodError") {
         return reply.status(400).send({
-          error: 'Validation error',
+          error: "Validation error",
           details: error,
         });
       }
 
       server.log.error(error);
       return reply.status(500).send({
-        error: 'Internal server error',
+        error: "Internal server error",
       });
     }
   });
 
   // GET /api/auth/me (protected route)
   server.get(
-    '/me',
+    "/me",
     {
       onRequest: [server.authenticate],
     },
@@ -59,7 +60,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
 
         if (!user) {
           return reply.status(404).send({
-            error: 'User not found',
+            error: "User not found",
           });
         }
 
@@ -67,7 +68,7 @@ const authRoutes: FastifyPluginAsync = async (server) => {
       } catch (error) {
         server.log.error(error);
         return reply.status(500).send({
-          error: 'Internal server error',
+          error: "Internal server error",
         });
       }
     }

@@ -35,6 +35,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build shared package
+        working-directory: ./packages/shared
+        run: pnpm build
+
       - name: Generate Prisma Client
         working-directory: ./apps/backend
         run: pnpm prisma generate
@@ -51,7 +55,8 @@ jobs:
             apps/backend/dist
             apps/backend/package.json
             apps/backend/prisma
-            packages/shared
+            packages/shared/dist
+            packages/shared/package.json
             package.json
             pnpm-lock.yaml
             pnpm-workspace.yaml

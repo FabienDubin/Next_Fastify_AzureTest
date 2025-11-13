@@ -1,4 +1,4 @@
-import { FastifyPluginAsync } from 'fastify';
+import { FastifyPluginAsync, FastifyRequest, FastifyReply } from 'fastify';
 import fp from 'fastify-plugin';
 import jwt from '@fastify/jwt';
 
@@ -8,7 +8,7 @@ const jwtPlugin: FastifyPluginAsync = async (server) => {
   });
 
   // Decorator for authenticating requests
-  server.decorate('authenticate', async function (request, reply) {
+  server.decorate('authenticate', async function (request: FastifyRequest, reply: FastifyReply) {
     try {
       await request.jwtVerify();
     } catch (err) {
@@ -16,6 +16,13 @@ const jwtPlugin: FastifyPluginAsync = async (server) => {
     }
   });
 };
+
+// Type declaration for authenticate decorator
+declare module 'fastify' {
+  interface FastifyInstance {
+    authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+  }
+}
 
 export default fp(jwtPlugin, {
   name: 'jwt',
