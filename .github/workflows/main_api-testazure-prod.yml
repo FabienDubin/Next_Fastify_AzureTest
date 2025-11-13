@@ -84,12 +84,8 @@ jobs:
         with:
           version: 10.20.0
 
-      - name: Install production dependencies
-        run: pnpm install --prod --frozen-lockfile
-
-      - name: Generate Prisma Client
-        working-directory: ./apps/backend
-        run: pnpm prisma generate
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
