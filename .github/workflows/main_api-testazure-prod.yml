@@ -66,7 +66,8 @@ jobs:
           node -e "const pkg = require('./package.json'); delete pkg.dependencies['@repo/shared']; pkg.scripts.build = 'echo \"Already built\"'; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
 
           # Install dependencies with npm (flat structure, no symlinks)
-          npm install --omit=dev --ignore-scripts
+          # Don't use --ignore-scripts so postinstall (prisma generate) runs
+          npm install --omit=dev
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
