@@ -61,9 +61,9 @@ jobs:
           # Copy backend package.json and remove workspace dependency
           cp apps/backend/package.json deploy/package.json
 
-          # Remove @repo/shared from dependencies (already copied manually)
+          # Remove @repo/shared from dependencies and build script (already built)
           cd deploy
-          node -e "const pkg = require('./package.json'); delete pkg.dependencies['@repo/shared']; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
+          node -e "const pkg = require('./package.json'); delete pkg.dependencies['@repo/shared']; pkg.scripts.build = 'echo \"Already built\"'; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
 
           # Install dependencies with npm (flat structure, no symlinks)
           npm install --omit=dev --ignore-scripts
