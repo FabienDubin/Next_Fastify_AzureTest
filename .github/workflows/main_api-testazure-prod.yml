@@ -58,11 +58,14 @@ jobs:
           cp -r packages/shared/dist/* deploy/node_modules/@repo/shared/
           cp packages/shared/package.json deploy/node_modules/@repo/shared/
 
-          # Copy backend package.json
+          # Copy backend package.json and remove workspace dependency
           cp apps/backend/package.json deploy/package.json
 
-          # Install dependencies with npm (flat structure, no symlinks)
+          # Remove @repo/shared from dependencies (already copied manually)
           cd deploy
+          node -e "const pkg = require('./package.json'); delete pkg.dependencies['@repo/shared']; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
+
+          # Install dependencies with npm (flat structure, no symlinks)
           npm install --omit=dev --ignore-scripts
 
       - name: Upload artifact for deployment job
