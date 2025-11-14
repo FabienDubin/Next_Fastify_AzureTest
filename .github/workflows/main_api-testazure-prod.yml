@@ -49,6 +49,7 @@ jobs:
           mkdir -p deploy/dist
           mkdir -p deploy/prisma
           mkdir -p deploy/node_modules/@repo/shared
+          mkdir -p deploy/node_modules/.prisma
 
           # Copy built files
           cp -r apps/backend/dist/* deploy/dist/
@@ -58,16 +59,18 @@ jobs:
           cp -r packages/shared/dist deploy/node_modules/@repo/shared/
           cp packages/shared/package.json deploy/node_modules/@repo/shared/
 
+          # Copy Prisma Client (already generated)
+          cp -r node_modules/.prisma/* deploy/node_modules/.prisma/
+
           # Copy backend package.json and remove workspace dependency
           cp apps/backend/package.json deploy/package.json
 
           # Remove @repo/shared from dependencies and build script (already built)
           cd deploy
-          node -e "const pkg = require('./package.json'); delete pkg.dependencies['@repo/shared']; pkg.scripts.build = 'echo \"Already built\"'; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
+          node -e "const pkg = require('./package.json'); delete pkg.dependencies['@repo/shared']; delete pkg.scripts.postinstall; pkg.scripts.build = 'echo \"Already built\"'; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
 
           # Install dependencies with npm (flat structure, no symlinks)
-          # Don't use --ignore-scripts so postinstall (prisma generate) runs
-          npm install --omit=dev
+          npm install --omit=dev --ignore-scripts
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
