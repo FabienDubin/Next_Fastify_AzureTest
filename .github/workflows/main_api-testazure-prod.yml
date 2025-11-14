@@ -52,14 +52,12 @@ jobs:
         with:
           name: node-app
           path: |
-            apps/backend/dist
-            apps/backend/package.json
-            apps/backend/prisma
-            packages/shared/dist
-            packages/shared/package.json
+            apps/backend/**
+            packages/shared/**
             package.json
             pnpm-lock.yaml
             pnpm-workspace.yaml
+            .npmrc
 
   deploy:
     runs-on: ubuntu-latest
@@ -84,8 +82,13 @@ jobs:
         with:
           version: 10.20.0
 
-      - name: Install dependencies
+      - name: Install workspace dependencies
+        env:
+          PNPM_NODE_LINKER: hoisted
         run: pnpm install --frozen-lockfile
+
+      - name: Regenerate Prisma Client
+        run: pnpm --filter backend prisma generate
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
