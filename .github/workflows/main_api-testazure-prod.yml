@@ -59,8 +59,8 @@ jobs:
           cp -r packages/shared/dist deploy/node_modules/@repo/shared/
           cp packages/shared/package.json deploy/node_modules/@repo/shared/
 
-          # Copy Prisma Client (already generated)
-          cp -r node_modules/.prisma/* deploy/node_modules/.prisma/
+          # Copy Prisma Client (already generated in backend workspace)
+          cp -r apps/backend/node_modules/.prisma/* deploy/node_modules/.prisma/
 
           # Copy backend package.json and remove workspace dependency
           cp apps/backend/package.json deploy/package.json
