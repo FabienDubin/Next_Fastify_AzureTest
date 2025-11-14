@@ -54,8 +54,8 @@ jobs:
           cp -r apps/backend/dist/* deploy/dist/
           cp -r apps/backend/prisma/* deploy/prisma/
 
-          # Copy shared package (compiled)
-          cp -r packages/shared/dist/* deploy/node_modules/@repo/shared/
+          # Copy shared package (compiled with dist folder)
+          cp -r packages/shared/dist deploy/node_modules/@repo/shared/
           cp packages/shared/package.json deploy/node_modules/@repo/shared/
 
           # Copy backend package.json and remove workspace dependency
