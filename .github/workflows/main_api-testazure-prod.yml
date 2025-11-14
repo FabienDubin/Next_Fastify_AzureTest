@@ -44,28 +44,32 @@ jobs:
       - name: Build backend
         run: pnpm --filter backend build
 
-      - name: Create .npmrc for Azure (hoisted mode)
+      - name: Create standalone deployment folder
         run: |
-          cat > .npmrc << 'EOF'
-          enable-pre-post-scripts=true
-          node-linker=hoisted
-          symlink=false
-          EOF
+          mkdir -p deploy/dist
+          mkdir -p deploy/prisma
+          mkdir -p deploy/node_modules/@repo/shared
+
+          # Copy built files
+          cp -r apps/backend/dist/* deploy/dist/
+          cp -r apps/backend/prisma/* deploy/prisma/
+
+          # Copy shared package (compiled)
+          cp -r packages/shared/dist/* deploy/node_modules/@repo/shared/
+          cp packages/shared/package.json deploy/node_modules/@repo/shared/
+
+          # Copy backend package.json
+          cp apps/backend/package.json deploy/package.json
+
+          # Install dependencies with npm (flat structure, no symlinks)
+          cd deploy
+          npm install --omit=dev --ignore-scripts
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: |
-            apps/backend/dist
-            apps/backend/package.json
-            apps/backend/prisma
-            packages/shared/dist
-            packages/shared/package.json
-            package.json
-            pnpm-lock.yaml
-            pnpm-workspace.yaml
-            .npmrc
+          path: deploy/
 
   deploy:
     runs-on: ubuntu-latest
