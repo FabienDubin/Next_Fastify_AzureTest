@@ -36,16 +36,13 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build shared package
-        working-directory: ./packages/shared
-        run: pnpm build
+        run: pnpm --filter @repo/shared build
 
       - name: Generate Prisma Client
-        working-directory: ./apps/backend
-        run: pnpm prisma generate
+        run: pnpm --filter backend prisma generate
 
       - name: Build backend
-        working-directory: ./apps/backend
-        run: pnpm build
+        run: pnpm --filter backend build
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
