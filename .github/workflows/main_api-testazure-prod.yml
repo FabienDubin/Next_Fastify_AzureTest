@@ -87,11 +87,23 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Prepare deployment structure
+        run: |
+          mkdir -p deploy
+          cp -r apps/backend/dist deploy/
+          cp apps/backend/package.json deploy/
+          cp -r apps/backend/prisma deploy/
+          cp -r node_modules deploy/
+          cp -r packages deploy/
+          cp package.json deploy/
+          cp pnpm-lock.yaml deploy/
+          cp pnpm-workspace.yaml deploy/
+
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'api-testazure-prod'
           slot-name: 'Production'
-          package: .
+          package: deploy
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_2BB1BD2D787B4D028285269A2A1ABE72 }}
