@@ -41,49 +41,20 @@ jobs:
       - name: Generate Prisma Client
         run: pnpm --filter backend run prisma:generate
 
-      - name: Debug - Find Prisma Client location
-        run: |
-          echo "=== Searching for .prisma directories ==="
-          find . -type d -name ".prisma" 2>/dev/null || echo "No .prisma found"
-          echo ""
-          echo "=== Searching for @prisma/client ==="
-          find . -path "*/node_modules/@prisma/client" -type d 2>/dev/null || echo "No @prisma/client found"
-          echo ""
-          echo "=== Contents of node_modules/.prisma if exists ==="
-          ls -la node_modules/.prisma/ 2>/dev/null || echo "node_modules/.prisma does not exist"
-
       - name: Build backend
         run: pnpm --filter backend build
 
-      - name: Create standalone deployment folder
+      - name: Create deployment package with symlinks preserved
         run: |
-          mkdir -p deploy/dist
-          mkdir -p deploy/prisma
-          mkdir -p deploy/node_modules/@repo/shared
-          mkdir -p deploy/node_modules/.prisma
-          mkdir -p deploy/node_modules/@prisma
+          cd apps/backend
+          # Zip everything including node_modules with symlinks preserved
+          # -r: recursive, -y: preserve symlinks, -x: exclude git files
+          zip -r -y ../../backend-deploy.zip . --symlinks -x '.git*' '*.log'
+          cd ../..
 
-          # Copy built files
-          cp -r apps/backend/dist/* deploy/dist/
-          cp -r apps/backend/prisma/* deploy/prisma/
-
-          # Copy shared package (compiled with dist folder)
-          cp -r packages/shared/dist deploy/node_modules/@repo/shared/
-          cp packages/shared/package.json deploy/node_modules/@repo/shared/
-
-          # Copy Prisma Client (generated at root node_modules by pnpm)
-          cp -r node_modules/.prisma/* deploy/node_modules/.prisma/
-          cp -r node_modules/@prisma/client deploy/node_modules/@prisma/
-
-          # Copy backend package.json and remove workspace dependency
-          cp apps/backend/package.json deploy/package.json
-
-          # Remove @repo/shared from dependencies and build script (already built)
-          cd deploy
-          node -e "const pkg = require('./package.json'); delete pkg.dependencies['@repo/shared']; delete pkg.scripts.postinstall; pkg.scripts.build = 'echo \"Already built\"'; require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2));"
-
-          # Install dependencies with npm (flat structure, no symlinks)
-          npm install --omit=dev --ignore-scripts
+          # Extract to a clean folder for upload
+          mkdir -p deploy
+          unzip -q backend-deploy.zip -d deploy/
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
