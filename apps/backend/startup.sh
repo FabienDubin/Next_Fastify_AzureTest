@@ -1,7 +1,9 @@
 #!/bin/sh
 echo "=== Starting deployment script ==="
 echo "Generating Prisma Client..."
-npx prisma generate --schema=./prisma/schema.prisma
+
+# Use node directly to avoid permission issues with npx
+node ./node_modules/prisma/build/index.js generate --schema=./prisma/schema.prisma
 
 echo "Prisma Client generated successfully!"
 echo "Starting Fastify server..."
