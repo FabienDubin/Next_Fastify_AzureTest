@@ -39,7 +39,7 @@ jobs:
         run: pnpm --filter @repo/shared build
 
       - name: Generate Prisma Client
-        run: pnpm --filter backend prisma generate
+        run: pnpm --filter backend run prisma:generate
 
       - name: Build backend
         run: pnpm --filter backend build
@@ -50,6 +50,7 @@ jobs:
           mkdir -p deploy/prisma
           mkdir -p deploy/node_modules/@repo/shared
           mkdir -p deploy/node_modules/.prisma
+          mkdir -p deploy/node_modules/@prisma
 
           # Copy built files
           cp -r apps/backend/dist/* deploy/dist/
@@ -59,8 +60,9 @@ jobs:
           cp -r packages/shared/dist deploy/node_modules/@repo/shared/
           cp packages/shared/package.json deploy/node_modules/@repo/shared/
 
-          # Copy Prisma Client (already generated in backend workspace)
-          cp -r apps/backend/node_modules/.prisma/* deploy/node_modules/.prisma/
+          # Copy Prisma Client (generated at root node_modules by pnpm)
+          cp -r node_modules/.prisma/* deploy/node_modules/.prisma/
+          cp -r node_modules/@prisma/client deploy/node_modules/@prisma/
 
           # Copy backend package.json and remove workspace dependency
           cp apps/backend/package.json deploy/package.json
