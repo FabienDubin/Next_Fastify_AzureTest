@@ -47,6 +47,10 @@ jobs:
       - name: Create deployment package with symlinks preserved
         run: |
           cd apps/backend
+
+          # Make startup.sh executable
+          chmod +x startup.sh
+
           # Zip everything including node_modules with symlinks preserved
           # -r: recursive, -y: preserve symlinks, -x: exclude git files
           zip -r -y ../../backend-deploy.zip . --symlinks -x '.git*' '*.log'
