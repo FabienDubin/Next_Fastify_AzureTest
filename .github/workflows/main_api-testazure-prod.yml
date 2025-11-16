@@ -41,6 +41,17 @@ jobs:
       - name: Generate Prisma Client
         run: pnpm --filter backend run prisma:generate
 
+      - name: Debug - Find Prisma Client location
+        run: |
+          echo "=== Searching for .prisma directories ==="
+          find . -type d -name ".prisma" 2>/dev/null || echo "No .prisma found"
+          echo ""
+          echo "=== Searching for @prisma/client ==="
+          find . -path "*/node_modules/@prisma/client" -type d 2>/dev/null || echo "No @prisma/client found"
+          echo ""
+          echo "=== Contents of node_modules/.prisma if exists ==="
+          ls -la node_modules/.prisma/ 2>/dev/null || echo "node_modules/.prisma does not exist"
+
       - name: Build backend
         run: pnpm --filter backend build
 
