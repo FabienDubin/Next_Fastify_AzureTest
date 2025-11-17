@@ -75,7 +75,7 @@ jobs:
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
           AZURE_ARTIFACTS_TOKEN: ${{ secrets.AZURE_ARTIFACTS_TOKEN }}
-          NPM_CONFIG_IGNORE_SCRIPTS: true
+          HUSKY: 0
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_BRAVE_MUD_077E37A03 }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
