@@ -69,12 +69,6 @@ jobs:
           # Try to publish, ignore error if version already exists
           npm publish || echo "⚠️ Package already published or publish failed, continuing..."
 
-      - name: Build frontend
-        env:
-          NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
-        run: |
-          pnpm --filter frontend build
-
       - name: Deploy to Azure Static Web Apps
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
@@ -87,7 +81,6 @@ jobs:
           app_location: "apps/frontend"
           api_location: ""
           output_location: ""
-          skip_app_build: true
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
