@@ -44,16 +44,31 @@ jobs:
       - name: Build backend
         run: pnpm --filter backend build
 
-      - name: Create deployment package with symlinks preserved
+      - name: Replace workspace symlink with actual code
+        run: |
+          cd apps/backend
+
+          # Remove the symlink to @repo/shared
+          rm -rf node_modules/@repo
+
+          # Create the directory structure
+          mkdir -p node_modules/@repo/shared
+
+          # Copy the built shared package (dist + package.json)
+          cp -r ../../packages/shared/dist node_modules/@repo/shared/
+          cp ../../packages/shared/package.json node_modules/@repo/shared/
+
+          echo "✅ @repo/shared symlink replaced with actual files"
+
+      - name: Create deployment package
         run: |
           cd apps/backend
 
           # Make startup.sh executable
           chmod +x startup.sh
 
-          # Zip everything including node_modules with symlinks preserved
-          # -r: recursive, -y: preserve symlinks, -x: exclude git files
-          zip -r -y ../../backend-deploy.zip . --symlinks -x '.git*' '*.log'
+          # Zip everything including node_modules
+          zip -r -y ../../backend-deploy.zip . -x '.git*' '*.log'
           cd ../..
 
           # Extract to a clean folder for upload
