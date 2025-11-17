@@ -27,18 +27,13 @@ jobs:
         with:
           node-version: '22.x'
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 10.20.0
-
       - name: Install dependencies for building
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Build and publish shared package to Azure Artifacts
         run: |
           cd packages/shared
-          pnpm build
+          npm run build
 
           # Configure npm authentication for Azure Artifacts
           echo "@mcigroupfrance:registry=https://pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/" > .npmrc
@@ -63,15 +58,6 @@ jobs:
       - name: Prepare backend for Azure deployment
         run: |
           cd apps/backend
-
-          # Replace @repo/shared workspace dependency with published package in package.json
-          sed -i 's/"@repo\/shared": "workspace:\*"/"@mcigroupfrance\/testazure-shared": "^1.0.0"/g' package.json
-
-          # Replace @repo/shared imports in source code
-          find src -type f -name "*.ts" -exec sed -i "s/@repo\/shared/@mcigroupfrance\/testazure-shared/g" {} +
-
-          echo "Updated package.json:"
-          cat package.json | grep -A 2 -B 2 "testazure-shared"
 
           # Configure npm authentication for installing from Azure Artifacts
           echo "@mcigroupfrance:registry=https://pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/" > .npmrc

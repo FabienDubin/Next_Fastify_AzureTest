@@ -5,7 +5,7 @@ import {
   Provider,
   ProviderFiltersSchema,
   PaginatedResponse,
-} from '@repo/shared';
+} from '@mcigroupfrance/testazure-shared';
 
 export class ProvidersService {
   constructor(private prisma: PrismaClient) {}

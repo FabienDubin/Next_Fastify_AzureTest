@@ -25,11 +25,6 @@ jobs:
         with:
           node-version: "22.x"
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 10.20.0
-
       - name: Configure Azure Artifacts authentication
         run: |
           # Add credentials to existing .npmrc (keeps ignore-scripts and registry config)
@@ -46,12 +41,12 @@ jobs:
           echo "✅ Azure Artifacts authentication configured"
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: npm ci
 
       - name: Build and publish shared package to Azure Artifacts
         run: |
           cd packages/shared
-          pnpm build
+          npm run build
 
           # Configure npm authentication for Azure Artifacts
           echo "@mcigroupfrance:registry=https://pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/" > .npmrc

@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from 'fastify';
-import { createProviderSchema, updateProviderSchema, providerFiltersSchema } from '@repo/shared';
+import { createProviderSchema, updateProviderSchema, providerFiltersSchema } from '@mcigroupfrance/testazure-shared';
 import { ProvidersService } from '../services/providers.service';
 
 const providersRoutes: FastifyPluginAsync = async (server) => {

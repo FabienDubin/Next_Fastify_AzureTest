@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from 'fastify';
-import { createProviderTypeSchema, updateProviderTypeSchema } from '@repo/shared';
+import { createProviderTypeSchema, updateProviderTypeSchema } from '@mcigroupfrance/testazure-shared';
 import { ProviderTypesService } from '../services/provider-types.service';
 
 const providerTypesRoutes: FastifyPluginAsync = async (server) => {

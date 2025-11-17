@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
-import { LoginRequest, LoginResponse } from '@repo/shared';
+import { LoginRequest, LoginResponse } from '@mcigroupfrance/testazure-shared';
 
 const SALT_ROUNDS = 10;
 

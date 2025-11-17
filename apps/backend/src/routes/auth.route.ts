@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from "fastify";
-import { loginSchema } from "@repo/shared";
+import { loginSchema } from "@mcigroupfrance/testazure-shared";
 // import { loginSchema } from '@packages/shared/types';
 import { AuthService } from "../services/auth.service";
 

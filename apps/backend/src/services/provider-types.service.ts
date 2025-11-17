@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { CreateProviderTypeRequest, UpdateProviderTypeRequest, ProviderType } from '@repo/shared';
+import { CreateProviderTypeRequest, UpdateProviderTypeRequest, ProviderType } from '@mcigroupfrance/testazure-shared';
 
 export class ProviderTypesService {
   constructor(private prisma: PrismaClient) {}
