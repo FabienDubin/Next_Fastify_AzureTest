@@ -1,5 +1,5 @@
 {
-  "name": "@mcigroupfrance/testazure-shared",
+  "name": "@repo/shared",
   "version": "1.0.0",
   "private": false,
   "main": "./dist/index.js",
@@ -17,6 +17,7 @@
     "typescript": "^5.6.0"
   },
   "publishConfig": {
+    "name": "@mcigroupfrance/testazure-shared",
     "registry": "https://pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/"
   }
 }

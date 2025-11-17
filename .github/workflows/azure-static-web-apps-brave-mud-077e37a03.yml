@@ -33,18 +33,13 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Deploy frontend with pnpm deploy
+      - name: Build shared package
+        run: pnpm --filter=@repo/shared build
+
+      - name: Build frontend
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
-        run: |
-          # Deploy frontend to standalone folder (resolves workspace dependencies)
-          pnpm --filter=frontend deploy deployed-frontend --prod
-
-          # Build the frontend in the deployed folder
-          cd deployed-frontend
-          pnpm build
-
-          echo "✅ Frontend built successfully in deployed-frontend/out"
+        run: pnpm --filter=frontend build
 
       - name: Upload to Azure Static Web Apps
         id: builddeploy
@@ -53,7 +48,7 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_BRAVE_MUD_077E37A03 }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "/deployed-frontend"
+          app_location: "/apps/frontend"
           api_location: ""
           output_location: "out"
           skip_app_build: true
