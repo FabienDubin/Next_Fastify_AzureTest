@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "export", // ⚠️ IMPORTANT pour Static Web Apps
+  // Mode Hybrid Next.js pour Azure Static Web Apps
+  // Supporte SSR, routes dynamiques, App Router
   images: {
     unoptimized: true,
   },
