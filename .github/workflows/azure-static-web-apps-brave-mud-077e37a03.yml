@@ -77,6 +77,9 @@ jobs:
           echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:_password=${{ secrets.AZURE_ARTIFACTS_TOKEN }}" >> .npmrc
           echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:email=ci@github.com" >> .npmrc
 
+          # Disable postinstall scripts to avoid husky errors in CI
+          echo "ignore-scripts=true" >> .npmrc
+
           echo "✅ Frontend prepared with @mcigroupfrance/testazure-shared from Azure Artifacts"
 
       - name: Deploy to Azure Static Web Apps
