@@ -71,6 +71,8 @@ jobs:
           echo "Checking @repo/shared structure:"
           ls -la node_modules/@repo/shared/ || echo "Warning: @repo/shared not found!"
 
+          # Testing with WEBSITE_NODE_MODULES_USE_TARBALL=false
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
