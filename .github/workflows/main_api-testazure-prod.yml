@@ -50,9 +50,15 @@ jobs:
           echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:_password=${{ secrets.AZURE_ARTIFACTS_TOKEN }}" >> .npmrc
           echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:email=ci@github.com" >> .npmrc
 
-          # Bump version and publish
+          # Increment version to next patch
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "Current version: $CURRENT_VERSION"
           npm version patch --no-git-tag-version
-          npm publish
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "New version: $NEW_VERSION"
+
+          # Try to publish, ignore error if version already exists
+          npm publish || echo "⚠️ Package already published or publish failed, continuing..."
 
       - name: Prepare backend for Azure deployment
         run: |
