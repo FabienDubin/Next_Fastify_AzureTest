@@ -33,13 +33,62 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build shared package
-        run: pnpm --filter=@repo/shared build
+      - name: Build and publish shared package to Azure Artifacts
+        run: |
+          cd packages/shared
+          pnpm build
+
+          # Configure npm authentication for Azure Artifacts
+          echo "@mcigroupfrance:registry=https://pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/" > .npmrc
+          echo "always-auth=true" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/:username=mcigroupfrance" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/:_password=${{ secrets.AZURE_ARTIFACTS_TOKEN }}" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/:email=ci@github.com" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:username=mcigroupfrance" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:_password=${{ secrets.AZURE_ARTIFACTS_TOKEN }}" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:email=ci@github.com" >> .npmrc
+
+          # Increment version to next patch
+          npm version patch --no-git-tag-version
+
+          # Try to publish, ignore error if version already exists
+          npm publish || echo "⚠️ Package already published or publish failed, continuing..."
+
+      - name: Prepare frontend for Azure deployment
+        run: |
+          cd apps/frontend
+
+          # Replace @repo/shared workspace dependency with published package in package.json
+          sed -i 's/"@repo\/shared": "workspace:\*"/"@mcigroupfrance\/testazure-shared": "^1.0.0"/g' package.json
+
+          # Replace @repo/shared imports in source code
+          find . -type f \( -name "*.ts" -o -name "*.tsx" \) -exec sed -i "s/@repo\/shared/@mcigroupfrance\/testazure-shared/g" {} +
+
+          echo "Updated package.json:"
+          cat package.json | grep -A 2 -B 2 "testazure-shared"
+
+          # Configure npm authentication for installing from Azure Artifacts
+          echo "@mcigroupfrance:registry=https://pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/" > .npmrc
+          echo "always-auth=true" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/:username=mcigroupfrance" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/:_password=${{ secrets.AZURE_ARTIFACTS_TOKEN }}" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/:email=ci@github.com" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:username=mcigroupfrance" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:_password=${{ secrets.AZURE_ARTIFACTS_TOKEN }}" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:email=ci@github.com" >> .npmrc
+
+          # Install dependencies from Azure Artifacts
+          rm -rf node_modules
+          npm install
+
+          echo "✅ Frontend prepared with @mcigroupfrance/testazure-shared from Azure Artifacts"
 
       - name: Build frontend
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
-        run: pnpm --filter=frontend build
+        run: |
+          cd apps/frontend
+          npm run build
 
       - name: Upload to Azure Static Web Apps
         id: builddeploy
