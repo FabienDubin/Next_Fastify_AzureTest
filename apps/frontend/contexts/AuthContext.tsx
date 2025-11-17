@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { authApi } from '@/lib/api';
-import type { LoginRequest, LoginResponse } from '@repo/shared';
+import type { LoginRequest, LoginResponse } from '@mcigroupfrance/testazure-shared';
 
 // On réutilise le type User depuis le shared package (single source of truth)
 type User = LoginResponse['user'];

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { providerTypesApi } from '@/lib/api';
-import type { ProviderType } from '@repo/shared';
+import type { ProviderType } from '@mcigroupfrance/testazure-shared';
 import { Button } from '@/components/ui/button';
 import {
   Card,

@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { providersApi, providerTypesApi } from '@/lib/api';
-import type { Provider, ProviderType } from '@repo/shared';
+import type { Provider, ProviderType } from '@mcigroupfrance/testazure-shared';
 
 interface ProviderFormProps {
   provider?: Provider; // Si présent, mode édition

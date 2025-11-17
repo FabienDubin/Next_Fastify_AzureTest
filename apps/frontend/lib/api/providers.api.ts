@@ -5,7 +5,7 @@ import type {
   UpdateProviderRequest,
   ProviderFiltersSchema,
   PaginatedResponse,
-} from '@repo/shared';
+} from '@mcigroupfrance/testazure-shared';
 
 export const providersApi = {
   /**

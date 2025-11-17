@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { providerTypesApi } from '@/lib/api';
-import type { ProviderType } from '@repo/shared';
+import type { ProviderType } from '@mcigroupfrance/testazure-shared';
 import { ProviderTypeForm } from '@/components/provider-types/provider-type-form';
 
 export default function EditProviderTypePage() {

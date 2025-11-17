@@ -54,21 +54,9 @@ jobs:
           # Try to publish, ignore error if version already exists
           npm publish || echo "⚠️ Package already published or publish failed, continuing..."
 
-      - name: Prepare frontend for Azure deployment
+      - name: Configure Azure Artifacts authentication
         run: |
-          cd apps/frontend
-
-          # Replace @repo/shared workspace dependency with published package in package.json
-          sed -i 's/"@repo\/shared": "workspace:\*"/"@mcigroupfrance\/testazure-shared": "^1.0.0"/g' package.json
-
-          # Replace @repo/shared imports in source code
-          find . -type f \( -name "*.ts" -o -name "*.tsx" \) -exec sed -i "s/@repo\/shared/@mcigroupfrance\/testazure-shared/g" {} +
-
-          echo "Updated package.json:"
-          cat package.json | grep -A 2 -B 2 "testazure-shared"
-
-          # Configure npm authentication for installing from Azure Artifacts
-          # Create .npmrc in frontend directory
+          # Configure npm authentication for Azure Artifacts (for both frontend and root)
           echo "@mcigroupfrance:registry=https://pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/" > .npmrc
           echo "always-auth=true" >> .npmrc
           echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/:username=mcigroupfrance" >> .npmrc
@@ -77,21 +65,10 @@ jobs:
           echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:username=mcigroupfrance" >> .npmrc
           echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:_password=${{ secrets.AZURE_ARTIFACTS_TOKEN }}" >> .npmrc
           echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:email=ci@github.com" >> .npmrc
-          echo "ignore-scripts=true" >> .npmrc
 
-          # Also create .npmrc at workspace root for Oryx (it runs npm install from root)
-          cd ../..
-          echo "@mcigroupfrance:registry=https://pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/" > .npmrc
-          echo "always-auth=true" >> .npmrc
-          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/:username=mcigroupfrance" >> .npmrc
-          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/:_password=${{ secrets.AZURE_ARTIFACTS_TOKEN }}" >> .npmrc
-          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/:email=ci@github.com" >> .npmrc
-          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:username=mcigroupfrance" >> .npmrc
-          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:_password=${{ secrets.AZURE_ARTIFACTS_TOKEN }}" >> .npmrc
-          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:email=ci@github.com" >> .npmrc
-          echo "ignore-scripts=true" >> .npmrc
+          cp .npmrc apps/frontend/.npmrc
 
-          echo "✅ Frontend prepared with @mcigroupfrance/testazure-shared from Azure Artifacts"
+          echo "✅ Azure Artifacts authentication configured"
 
       - name: Deploy to Azure Static Web Apps
         id: builddeploy

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { providersApi, providerTypesApi } from '@/lib/api';
-import type { Provider, ProviderType } from '@repo/shared';
+import type { Provider, ProviderType } from '@mcigroupfrance/testazure-shared';
 import { Button } from '@/components/ui/button';
 import {
   Card,

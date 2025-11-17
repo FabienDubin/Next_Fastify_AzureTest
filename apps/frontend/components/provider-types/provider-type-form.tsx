@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/field';
 import { Textarea } from '@/components/ui/textarea';
 import { providerTypesApi } from '@/lib/api';
-import type { CreateProviderTypeRequest, ProviderType } from '@repo/shared';
+import type { CreateProviderTypeRequest, ProviderType } from '@mcigroupfrance/testazure-shared';
 import { useState } from 'react';
 import { z } from 'zod';
 
