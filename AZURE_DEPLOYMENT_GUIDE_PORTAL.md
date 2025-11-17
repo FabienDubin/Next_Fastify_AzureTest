@@ -241,14 +241,43 @@ Une fois la Web App créée :
 5. Cliquer sur **"Apply"** en bas
 6. Cliquer sur **"Confirm"** dans la popup
 
-### 2.4 Configurer le démarrage
+### 2.4 Créer le script de démarrage
 
-1. Toujours dans le menu de gauche, aller dans **"Settings"** → **"Configuration"**
+⚠️ **IMPORTANT** : Azure exclut les dossiers cachés (comme `.prisma/`) lors du déploiement. Il faut régénérer le Prisma Client au démarrage.
+
+**1. Créer `apps/backend/startup.sh`** :
+
+```bash
+#!/bin/sh
+echo "=== Starting deployment script ==="
+echo "Generating Prisma Client..."
+node ./node_modules/prisma/build/index.js generate --schema=./prisma/schema.prisma
+
+echo "Prisma Client generated successfully!"
+echo "Starting Fastify server..."
+node dist/server.js
+```
+
+**2. Rendre le script exécutable** :
+```bash
+chmod +x apps/backend/startup.sh
+```
+
+**3. Commit et push** :
+```bash
+git add apps/backend/startup.sh
+git commit -m "Add startup script for Prisma generation"
+git push origin main
+```
+
+### 2.5 Configurer le démarrage dans Azure
+
+1. Dans le menu de gauche, aller dans **"Settings"** → **"Configuration"**
 2. Onglet **"General settings"**
-3. **Startup Command** : `node dist/server.js`
+3. **Startup Command** : `bash startup.sh`
 4. Cliquer sur **"Save"** en haut
 
-### 2.5 Préparer le backend pour le déploiement
+### 2.6 Préparer le backend pour le déploiement
 
 **IMPORTANT : Modifications à faire dans le code**
 
@@ -295,7 +324,7 @@ git commit -m "Configure backend for Azure deployment"
 git push origin main
 ```
 
-### 2.6 Workflow GitHub Actions créé automatiquement
+### 2.7 Workflow GitHub Actions créé automatiquement
 
 Azure a créé un fichier `.github/workflows/` qui se déclenche automatiquement à chaque push !
 
@@ -304,7 +333,7 @@ Azure a créé un fichier `.github/workflows/` qui se déclenche automatiquement
 2. Tu verras le workflow en cours d'exécution
 3. Attendre qu'il soit ✅ vert
 
-### 2.7 Tester l'API
+### 2.8 Tester l'API
 
 1. Retourner sur le portail Azure → Ta Web App
 2. En haut à droite, cliquer sur **"Browse"** (ou **"URL"**)
@@ -576,6 +605,12 @@ GitHub Actions va automatiquement redéployer le backend ! ✅
 ---
 
 ## 🐛 Problèmes fréquents et solutions
+
+### "Cannot find module '.prisma/client/default'"
+
+**Cause** : Azure exclut les dossiers cachés (commençant par `.`) lors de la compression tar.gz des `node_modules`. Le dossier `.prisma/` n'est donc pas déployé.
+
+**Solution** : Utiliser le startup script (voir section 2.4) qui régénère Prisma Client au démarrage de l'app.
 
 ### "Application Error" sur le backend
 

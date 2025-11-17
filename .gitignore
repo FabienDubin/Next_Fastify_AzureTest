@@ -16,6 +16,9 @@ out/
 .env.azure
 .env.production
 
+# NPM authentication (contains secrets)
+.npmrc
+
 # IDE
 .vscode/
 .idea/

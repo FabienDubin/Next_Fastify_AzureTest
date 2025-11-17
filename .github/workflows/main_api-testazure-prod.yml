@@ -32,46 +32,62 @@ jobs:
         with:
           version: 10.20.0
 
-      - name: Install dependencies
+      - name: Install dependencies for building
         run: pnpm install --frozen-lockfile
 
-      - name: Build shared package
-        run: pnpm --filter @repo/shared build
+      - name: Build and publish shared package to Azure Artifacts
+        run: |
+          cd packages/shared
+          pnpm build
 
-      - name: Generate Prisma Client
-        run: pnpm --filter backend run prisma:generate
+          # Configure npm authentication for Azure Artifacts
+          echo "@mcigroupfrance:registry=https://pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/" > .npmrc
+          echo "always-auth=true" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/:username=mcigroupfrance" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/:_password=${{ secrets.AZURE_ARTIFACTS_TOKEN }}" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/:email=ci@github.com" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:username=mcigroupfrance" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:_password=${{ secrets.AZURE_ARTIFACTS_TOKEN }}" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:email=ci@github.com" >> .npmrc
 
-      - name: Build backend
-        run: pnpm --filter backend build
+          # Bump version and publish
+          npm version patch --no-git-tag-version
+          npm publish
 
-      - name: Replace workspace symlink with actual code
+      - name: Prepare backend for Azure deployment
         run: |
           cd apps/backend
 
-          # Remove the symlink to @repo/shared
-          rm -rf node_modules/@repo
+          # Replace @repo/shared workspace dependency with published package
+          sed -i 's/"@repo\/shared": "workspace:\*"/"@mcigroupfrance\/testazure-shared": "^1.0.0"/g' package.json
 
-          # Create the directory structure
-          mkdir -p node_modules/@repo/shared
+          echo "Updated package.json:"
+          cat package.json | grep -A 2 -B 2 "testazure-shared"
 
-          # Copy the built shared package (dist + package.json)
-          cp -r ../../packages/shared/dist node_modules/@repo/shared/
-          cp ../../packages/shared/package.json node_modules/@repo/shared/
+          # Configure npm authentication for installing from Azure Artifacts
+          echo "@mcigroupfrance:registry=https://pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/" > .npmrc
+          echo "always-auth=true" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/:username=mcigroupfrance" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/:_password=${{ secrets.AZURE_ARTIFACTS_TOKEN }}" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/:email=ci@github.com" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:username=mcigroupfrance" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:_password=${{ secrets.AZURE_ARTIFACTS_TOKEN }}" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:email=ci@github.com" >> .npmrc
 
-          echo "✅ @repo/shared symlink replaced with actual files"
+          # Install dependencies from Azure Artifacts (not from workspace)
+          rm -rf node_modules
+          npm install --production
 
-      - name: Prepare deployment package
-        run: |
-          cd apps/backend
+          # Generate Prisma Client
+          npx prisma generate
+
+          # Build backend
+          npm run build
 
           # Make startup.sh executable
           chmod +x startup.sh
 
-          # Verify that @repo/shared has been replaced
-          echo "Checking @repo/shared structure:"
-          ls -la node_modules/@repo/shared/ || echo "Warning: @repo/shared not found!"
-
-          # Testing with WEBSITE_NODE_MODULES_USE_TARBALL=false
+          echo "✅ Backend prepared with @mcigroupfrance/testazure-shared from Azure Artifacts"
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4

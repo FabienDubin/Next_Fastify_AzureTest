@@ -302,14 +302,35 @@ az webapp config appsettings list \
   --output table
 ```
 
-### 2.4 Configurer le build et startup
+### 2.4 Créer le script de démarrage
+
+⚠️ **IMPORTANT** : Azure exclut les dossiers cachés (comme `.prisma/`) lors du déploiement via tar.gz. Il faut régénérer le Prisma Client au démarrage.
+
+**1. Créer `apps/backend/startup.sh`** :
 
 ```bash
-# Configurer le script de démarrage
+cat > apps/backend/startup.sh << 'EOF'
+#!/bin/sh
+echo "=== Starting deployment script ==="
+echo "Generating Prisma Client..."
+node ./node_modules/prisma/build/index.js generate --schema=./prisma/schema.prisma
+
+echo "Prisma Client generated successfully!"
+echo "Starting Fastify server..."
+node dist/server.js
+EOF
+
+# Rendre le script exécutable
+chmod +x apps/backend/startup.sh
+```
+
+**2. Configurer Azure pour utiliser le startup script** :
+
+```bash
 az webapp config set \
   --resource-group $RESOURCE_GROUP \
   --name $WEBAPP_NAME \
-  --startup-file "node dist/server.js"
+  --startup-file "bash startup.sh"
 ```
 
 ### 2.5 Préparer le backend pour le déploiement
@@ -890,6 +911,22 @@ az group delete \
 ---
 
 ## 🐛 Troubleshooting
+
+### "Cannot find module '.prisma/client/default'"
+
+**Cause** : Azure utilise `/opt/Kudu/Scripts/absoluteTar.sh` qui compresse `node_modules` avec `tar -zcf node_modules.tar.gz *`. Le wildcard `*` exclut les dossiers cachés (comme `.prisma/`, `.bin/`, `.cache/`).
+
+**Solution** : Utiliser le startup script (voir section 2.4) qui régénère Prisma Client au démarrage.
+
+**Contexte technique** : Ce comportement a été introduit dans Kudu version `20250502.11`. Voir [Microsoft Q&A](https://learn.microsoft.com/en-us/answers/questions/2276283/azure-app-service-(linux)-kudu-absolutetar-sh-excl).
+
+### "Cannot find module '@repo/shared'"
+
+**Cause** : Les symlinks pnpm workspace sont cassés par le processus tar.gz d'Azure.
+
+**Solutions** :
+1. **Court terme** : Zipper avec symlinks préservés (`zip -r -y --symlinks`)
+2. **Long terme** : Publier `@repo/shared` comme package npm sur Azure Artifacts ou npm registry
 
 ### Le backend ne démarre pas
 
