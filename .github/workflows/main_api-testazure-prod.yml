@@ -58,8 +58,11 @@ jobs:
         run: |
           cd apps/backend
 
-          # Replace @repo/shared workspace dependency with published package
+          # Replace @repo/shared workspace dependency with published package in package.json
           sed -i 's/"@repo\/shared": "workspace:\*"/"@mcigroupfrance\/testazure-shared": "^1.0.0"/g' package.json
+
+          # Replace @repo/shared imports in source code
+          find src -type f -name "*.ts" -exec sed -i "s/@repo\/shared/@mcigroupfrance\/testazure-shared/g" {} +
 
           echo "Updated package.json:"
           cat package.json | grep -A 2 -B 2 "testazure-shared"
@@ -74,15 +77,18 @@ jobs:
           echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:_password=${{ secrets.AZURE_ARTIFACTS_TOKEN }}" >> .npmrc
           echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:email=ci@github.com" >> .npmrc
 
-          # Install dependencies from Azure Artifacts (not from workspace)
+          # Install ALL dependencies (not just production - we need devDependencies for build)
           rm -rf node_modules
-          npm install --production
+          npm install
 
           # Generate Prisma Client
           npx prisma generate
 
           # Build backend
           npm run build
+
+          # Remove devDependencies after build
+          npm prune --production
 
           # Make startup.sh executable
           chmod +x startup.sh
