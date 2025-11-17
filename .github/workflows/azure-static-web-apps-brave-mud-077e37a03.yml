@@ -23,12 +23,26 @@ jobs:
       - name: Set up Node.js version
         uses: actions/setup-node@v3
         with:
-          node-version: '22.x'
+          node-version: "22.x"
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 10.20.0
+
+      - name: Configure Azure Artifacts authentication
+        run: |
+          # Configure npm authentication for Azure Artifacts
+          echo "@mcigroupfrance:registry=https://pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/" > .npmrc
+          echo "always-auth=true" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/:username=mcigroupfrance" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/:_password=${{ secrets.AZURE_ARTIFACTS_TOKEN }}" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/:email=ci@github.com" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:username=mcigroupfrance" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:_password=${{ secrets.AZURE_ARTIFACTS_TOKEN }}" >> .npmrc
+          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:email=ci@github.com" >> .npmrc
+
+          echo "✅ Azure Artifacts authentication configured"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -53,22 +67,6 @@ jobs:
 
           # Try to publish, ignore error if version already exists
           npm publish || echo "⚠️ Package already published or publish failed, continuing..."
-
-      - name: Configure Azure Artifacts authentication
-        run: |
-          # Configure npm authentication for Azure Artifacts (for both frontend and root)
-          echo "@mcigroupfrance:registry=https://pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/" > .npmrc
-          echo "always-auth=true" >> .npmrc
-          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/:username=mcigroupfrance" >> .npmrc
-          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/:_password=${{ secrets.AZURE_ARTIFACTS_TOKEN }}" >> .npmrc
-          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/registry/:email=ci@github.com" >> .npmrc
-          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:username=mcigroupfrance" >> .npmrc
-          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:_password=${{ secrets.AZURE_ARTIFACTS_TOKEN }}" >> .npmrc
-          echo "//pkgs.dev.azure.com/mcigroupfrance/testazure/_packaging/testazure-package/npm/:email=ci@github.com" >> .npmrc
-
-          cp .npmrc apps/frontend/.npmrc
-
-          echo "✅ Azure Artifacts authentication configured"
 
       - name: Deploy to Azure Static Web Apps
         id: builddeploy
